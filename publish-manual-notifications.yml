@@ -1,0 +1,30 @@
+name: Publish manual notifications
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "notifications.json"
+      - "scripts/validate_notifications.py"
+      - ".github/workflows/publish-manual-notifications.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate and prepare website JSON
+        run: python scripts/validate_notifications.py
+      - name: Commit generated website JSON
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/manual_notifications.json
+          git diff --cached --quiet || git commit -m "Publish manual notifications"
+          git push
